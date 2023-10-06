@@ -1,8 +1,8 @@
 <template>
   <div id="app">
     <nav></nav>
-    <sidebar/>
-    <router-view/>
+    <sidebar />
+    <router-view />
   </div>
 </template>
 
@@ -29,8 +29,8 @@ nav {
 }
 
 .grey.darken-1 {
-    background-color: #757575!important;
-    border-color: #757575!important;
+  background-color: #757575 !important;
+  border-color: #757575 !important;
 }
 
 .pa-4 {
@@ -44,8 +44,5 @@ nav {
 </style>
 
 <script>
-
-export default {
-}
+export default {};
 </script>
-
