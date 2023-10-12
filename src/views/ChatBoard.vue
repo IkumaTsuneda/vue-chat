@@ -2,6 +2,7 @@
   <v-app id="inspire">
     <sidebar />
     <v-main>
+      <h1>{{ room ? room.name : "" }}</h1>
       <v-container class="py-8 px-6" fluid>
         <v-row>
           <v-col v-for="card in cards" :key="card" cols="12">
@@ -12,6 +13,7 @@
                 <template v-for="(data, index) in messages">
                   <v-list-item :key="index">
                     <v-list-item-avatar color="grey darken-1">
+                      <v-img :src="data.photoURL"></v-img>
                     </v-list-item-avatar>
 
                     <v-list-item-content>
@@ -51,27 +53,44 @@
 
 <script>
 import firebase from "@/firebase/firebase";
-import Sidebar from "@/components/layouts/SidebarComponents";
+import Sidebar from "@/components/layouts/SidebarComponent";
 
 export default {
   components: {
     Sidebar,
   },
   async created() {
-    this.user_id = this.$route.query.user_id;
-    console.log(this.user_id);
+    this.roomId = this.$route.query.room_id;
+    console.log("roomId", this.roomId);
 
-    const chatref = firebase.firestore().collection("chats");
-    const snapshot = await chatref.get();
+    const roomRef = firebase.firestore().collection("rooms").doc(this.roomId);
+    const roomDoc = await roomRef.get();
+    if (!roomDoc.exists) {
+      this.$router.push("/");
+    }
+    this.room = roomDoc.data();
+    console.log("room", this.room);
+  },
+  mounted() {
+    this.auth = JSON.parse(sessionStorage.getItem("user"));
+    console.log("auth", this.auth);
 
-    snapshot.forEach((doc) => {
-      this.messages.push(doc.data());
-    });
+    const roomRef = firebase.firestore().collection("rooms").doc(this.roomId);
+    roomRef
+      .collection("messages")
+      .orderBy("createdAt", "asc")
+      .onSnapshot((snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          console.log("new message", change.doc.data());
+          this.messages.push(change.doc.data());
+        });
+      });
   },
   data: () => ({
     messages: [],
     body: "",
-    user_id: "",
+    room_id: "",
+    room: null,
     cards: ["Today"],
     drawer: null,
     links: [
@@ -80,6 +99,7 @@ export default {
       ["mdi-delete", "Trash"],
       ["mdi-alert-octagon", "Spam"],
     ],
+    auth: null,
   }),
   computed: {
     invalid() {
@@ -95,8 +115,24 @@ export default {
     },
     submit() {
       console.log(this.body);
-      this.messages.unshift({ message: this.body });
-      this.body = "";
+
+      const roomRef = firebase.firestore().collection("rooms").doc(this.roomId);
+      roomRef
+        .collection("messages")
+        .add({
+          message: this.body,
+          name: this.auth.displayName,
+          photoURL: this.auth.photoURL,
+          createdAt: firebase.firestore.Timestamp.now(),
+        })
+        .then((result) => {
+          console.log("success", result);
+          this.body = "";
+        })
+        .catch((error) => {
+          console.log("fail", error);
+          alert("メッセージの送信に失敗しました。");
+        });
     },
   },
 };

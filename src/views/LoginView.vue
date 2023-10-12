@@ -132,7 +132,16 @@ export default {
           console.log("success", result);
           console.log("updated user", result.user);
 
-          //トップページに遷移
+          const auth = {
+            displayName: result.user.displayName,
+            email: result.user.email,
+            uid: result.user.uid,
+            refleshToken: result.user.refreshToken,
+            photoURL: result.user.photoURL,
+          };
+
+          sessionStorage.setItem("user", JSON.stringify(auth));
+
           this.$router.push("/");
         })
         .catch((error) => {

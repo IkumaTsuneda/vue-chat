@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import Sidebar from "@/components/layouts/SidebarComponents";
+import Sidebar from "@/components/layouts/SidebarComponent";
 
 export default {
   components: {
